@@ -4,7 +4,7 @@ Guidance for coding agents (Claude Code, Codex, Cursor, …) and humans working 
 
 ## What this is
 
-An MCP server that wraps the official **Garmin Connect Personal API** (released Oct 2026). Each of its 26 GET endpoints is one read-only MCP tool. The server runs in two modes:
+An MCP server that wraps the official **Garmin Connect Personal API** (released Oct 2026). Each of its 28 GET endpoints is one read-only MCP tool. The server runs in two modes:
 
 - **stdio** ([`src/stdio.ts`](src/stdio.ts)), for local desktop clients.
 - **HTTP** ([`src/http.ts`](src/http.ts) → [`api/mcp.ts`](api/mcp.ts) on Vercel), behind a bearer token.
@@ -26,7 +26,7 @@ src/encoding.ts                 atob/btoa base64 helpers (no Buffer on the HTTP 
          ▼
 src/tools/define.ts             jsonTool()/customTool() registry types
 src/tools/schemas.ts            shared zod pieces: date(), startDate(), endDate(), activityId, checkRange()
-src/tools/<area>.ts             tool definitions (profile, activities, daily, sleep, heart, body, nutrition, womens-health)
+src/tools/<area>.ts             tool definitions (profile, activities, daily, sleep, heart, metrics, body, nutrition, womens-health)
 src/tools/index.ts              allTools[], registerAllTools(), runTool() (validate → call → shape, never throws)
          │
          ▼
@@ -76,6 +76,8 @@ These come from Garmin's OpenAPI spec (Personal API 1.0.0) and its reference cli
 - `GET /weight-service/weight/all/{startDate}/{endDate}` answers **400 with body `{}`** to every documented request, including single days with weigh-ins. `garmin_get_weight_entries` still tries it first, then falls back to `weight/range?includeAll=true` and flattens `dailyWeightSummaries[].allWeightMetrics`, which has the same fields. If Garmin fixes the endpoint, the fallback stops being used automatically.
 - When the spec and live data disagree, trust live data. Check with `npm run smoke`, and with a throwaway script that prints only types or magnitudes, never values.
 - Personal tier: read-only, pull-only, own data only, not for commercial multi-user apps. No Training API (workout upload) and no webhooks.
+- Endpoints added after spec 1.0.0 (Nov 2026), taken from Garmin's reference client `garmin/connect-personal-api-python` 1.1.0 and not yet verified live: `GET /activity-service/activity/activityTypes/simple` and `GET /metrics-service/metrics/maxmet/daily/{startDate}/{endDate}` (daily VO2 max, optional repeated `sport` query with FIT SDK sport names such as `RUNNING`). No maximum range is documented for VO2 max. Confirm both with `npm run smoke`.
+- Not in the Personal API (no endpoint): Training Readiness, Training Status, acute/chronic load and ratio, load focus, race predictions, Endurance Score, Hill Score, recovery time. Do not add unofficial Garmin Connect paths for these.
 
 Where the spec lives: https://developer.garmin.com/gc-developer-program/personal/swagger-docs/. The page renders an OpenAPI 3.0.1 document that is embedded in the page's JavaScript bundle; there is no standalone JSON URL. Garmin's reference Python client is https://github.com/garmin/connect-personal-api-python.
 
@@ -100,7 +102,7 @@ When Garmin adds or changes an endpoint:
    - `validate`: use `checkRange(start, end, maxDays)` when the spec documents a maximum span.
    - `request(args, ctx)`: build the path with `seg()` for path params. Query values that are `undefined` or `null` are dropped automatically, and arrays are repeated. Use `ctx.today()` if a default date is unavoidable.
 2. If it is a new area file, add it to `allTools` in `src/tools/index.ts`.
-3. Update `test/tools.test.ts`: add the endpoint to `SPEC_ENDPOINTS` and a sample to `CASES`. The tests fail until both are present. Then update the tool count (26) in the tests and the README.
+3. Update `test/tools.test.ts`: add the endpoint to `SPEC_ENDPOINTS` and a sample to `CASES`. The tests fail until both are present. Then update the tool count (28) in the tests and the README.
 4. Add the tool name to the **Tools** table in `README.md` (a test checks every tool is listed). Keep the README short: details belong in the tool description, and hosting or troubleshooting notes go in `docs/deployment.md`.
 
 ### Description style guide

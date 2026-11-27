@@ -10,8 +10,14 @@ import { safeFilename } from '../src/tools/activities.js';
 import { allTools, runTool } from '../src/tools/index.js';
 import { BASE_URL, json, makeJwt, mockGarmin, type RecordedCall } from './helpers.js';
 
-/** Every operation in Garmin's Personal API OpenAPI spec (v1.0.0). */
+/**
+ * Every operation in Garmin's Personal API OpenAPI spec (v1.0.0), plus the two endpoints Garmin
+ * added later and wraps in its reference client (garmin/connect-personal-api-python 1.1.0):
+ * activity types and daily VO2 max.
+ */
 const SPEC_ENDPOINTS = [
+  'GET /activity-service/activity/activityTypes/simple',
+  'GET /metrics-service/metrics/maxmet/daily/{startDate}/{endDate}',
   'GET /activity-service/activity/{activityId}',
   'GET /activity-service/activity/{activityId}/workouts',
   'GET /activitylist-service/activities/search/activities',
@@ -77,6 +83,11 @@ const CASES: Record<string, { args: Record<string, unknown>; url: string }> = {
   },
   garmin_get_spo2: { args: { calendarDate: '2026-10-20' }, url: '/wellness-service/wellness/daily/spo2acclimation/2026-10-20' },
   garmin_get_fitness_age: { args: { calendarDate: '2026-10-20' }, url: '/fitnessage-service/fitnessage/v2/2026-10-20' },
+  garmin_get_vo2_max: {
+    args: { startDate: '2026-08-20', endDate: '2026-08-24', sport: ['RUNNING', 'CYCLING'] },
+    url: '/metrics-service/metrics/maxmet/daily/2026-08-20/2026-08-24?sport=RUNNING&sport=CYCLING',
+  },
+  garmin_get_activity_types: { args: {}, url: '/activity-service/activity/activityTypes/simple' },
   garmin_get_weight_entries: { args: { startDate: '2026-10-01', endDate: '2026-10-20' }, url: '/weight-service/weight/all/2026-10-01/2026-10-20' },
   garmin_get_weight_summary: {
     args: { startDate: '2026-10-01', endDate: '2026-10-20', includeAll: true },
@@ -147,7 +158,7 @@ describe('tool registry', () => {
     const { client } = await connect(() => json({}));
     const { tools } = await client.listTools();
 
-    expect(tools).toHaveLength(26);
+    expect(tools).toHaveLength(SPEC_ENDPOINTS.length);
     for (const tool of tools) {
       expect(tool.name).toMatch(/^garmin_[a-z0-9_]+$/);
       expect(tool.description?.length ?? 0).toBeGreaterThan(80);
@@ -243,6 +254,7 @@ describe('validation before calling Garmin', () => {
     ['garmin_get_daily_summaries', { startDate: '2025-10-23', endDate: '2026-10-23' }, /at most 365 days.*366 days/],
     ['garmin_get_weight_entries', { startDate: '2026-10-10', endDate: '2026-10-01' }, /before the start date/],
     ['garmin_search_activities', { upperLatitude: 50 }, /all four bounds/],
+    ['garmin_get_vo2_max', { startDate: '2026-10-10', endDate: '2026-10-01' }, /before the start date/],
   ];
 
   for (const [name, args, message] of rejected) {
@@ -358,6 +370,9 @@ describe('numeric inputs are strict', () => {
     ['garmin_search_activities', { limit: false }],
     ['garmin_get_nutrition_log', { date: '2026-10-20', mealId: '' }],
     ['garmin_get_body_battery', { startDate: '2026-10-01', endDate: '2026-10-02', chunks: true }],
+    ['garmin_get_vo2_max', { startDate: '2026-10-01', endDate: '2026-10-02', sport: 'RUNNING' }],
+    ['garmin_get_vo2_max', { startDate: '2026-10-01', endDate: '2026-10-02', sport: [] }],
+    ['garmin_get_vo2_max', { startDate: '2026-10-01', endDate: '2026-10-02', sport: ['RUNNING&x=1'] }],
   ];
   for (const [name, args] of rejected) {
     it(`${name} rejects ${JSON.stringify(args)} without calling Garmin`, async () => {
@@ -367,6 +382,19 @@ describe('numeric inputs are strict', () => {
       expect(garmin.calls).toHaveLength(0);
     });
   }
+
+  it('omits the sport filter from the VO2 max request when it is not given', async () => {
+    const { client, garmin } = await connect(() => json([]));
+    const result = await client.callTool({ name: 'garmin_get_vo2_max', arguments: { startDate: '2026-11-01', endDate: '2026-11-26' } });
+    expect(result.isError ?? false).toBe(false);
+    expect(garmin.dataCalls()[0]?.url).toBe(`${BASE_URL}/metrics-service/metrics/maxmet/daily/2026-11-01/2026-11-26`);
+  });
+
+  it('treats a null VO2 max sport filter as not set', async () => {
+    const { client, garmin } = await connect(() => json([]));
+    await client.callTool({ name: 'garmin_get_vo2_max', arguments: { startDate: '2026-11-01', endDate: '2026-11-26', sport: null } });
+    expect(garmin.dataCalls()[0]?.url).toBe(`${BASE_URL}/metrics-service/metrics/maxmet/daily/2026-11-01/2026-11-26`);
+  });
 
   it('accepts activity IDs given as digit strings', async () => {
     const { client, garmin } = await connect(() => json({}));

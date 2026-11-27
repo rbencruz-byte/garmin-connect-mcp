@@ -497,7 +497,7 @@ describe('end to end with the MCP SDK OAuth client', () => {
     const connected = new Client({ name: 'sdk-test', version: '1.0.0' });
     await connected.connect(new StreamableHTTPClientTransport(new URL(`${ORIGIN}/mcp`), { authProvider: provider, fetch: fetchViaHandler }));
     const { tools } = await connected.listTools();
-    expect(tools).toHaveLength(26);
+    expect(tools).toHaveLength(28);
     const result = await connected.callTool({ name: 'garmin_get_user_settings', arguments: {} });
     expect((result.content as { text: string }[])[0]?.text).toBe('{"displayName":"runner"}');
     await connected.close();
