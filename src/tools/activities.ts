@@ -90,6 +90,18 @@ export const searchActivities = jsonTool({
   request: (args) => ({ path: '/activitylist-service/activities/search/activities', query: { ...args } }),
 });
 
+export const getActivityTypes = jsonTool({
+  name: 'garmin_get_activity_types',
+  title: 'List activity types',
+  endpoint: 'GET /activity-service/activity/activityTypes/simple',
+  description:
+    'List every Garmin activity type with its typeKey, typeId and parentTypeId, so you can find valid activityType ' +
+    '(parent keys such as running or cycling) and activitySubType (child keys such as trail_running or treadmill_running) ' +
+    'values for garmin_search_activities. This is reference data that rarely changes; call it once, not before every search.',
+  inputSchema: z.object({}),
+  request: () => ({ path: '/activity-service/activity/activityTypes/simple' }),
+});
+
 export const getActivity = jsonTool({
   name: 'garmin_get_activity',
   title: 'Get activity details',
@@ -187,4 +199,4 @@ export function safeFilename(name: string | undefined, fallback: string): string
   return cleaned && cleaned !== '.' && cleaned !== '..' ? cleaned : fallback;
 }
 
-export const activityTools = [searchActivities, getActivity, getActivityWorkouts, downloadActivityFile];
+export const activityTools = [searchActivities, getActivityTypes, getActivity, getActivityWorkouts, downloadActivityFile];

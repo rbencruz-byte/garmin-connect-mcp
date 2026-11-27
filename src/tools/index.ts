@@ -5,6 +5,7 @@ import { bodyTools } from './body.js';
 import { dailyTools } from './daily.js';
 import { jsonResult, type GarminTool, type ToolContext } from './define.js';
 import { heartTools } from './heart.js';
+import { metricsTools } from './metrics.js';
 import { nutritionTools } from './nutrition.js';
 import { profileTools } from './profile.js';
 import { sleepTools } from './sleep.js';
@@ -17,6 +18,7 @@ export const allTools: GarminTool[] = [
   ...dailyTools,
   ...sleepTools,
   ...heartTools,
+  ...metricsTools,
   ...bodyTools,
   ...nutritionTools,
   ...womensHealthTools,

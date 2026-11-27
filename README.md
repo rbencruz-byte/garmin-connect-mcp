@@ -4,7 +4,7 @@ Let Claude, Gemini, ChatGPT or any other [MCP](https://modelcontextprotocol.io) 
 
 > "How did I sleep this week compared to last week?" · "Summarize my last five runs." · "Which days this month did I miss my step goal?"
 
-It exposes all 26 Personal API endpoints as read-only tools, and you can host it yourself for free on Vercel.
+It exposes all 28 Personal API endpoints as read-only tools, and you can host it yourself for free on Vercel.
 
 > Unofficial community project, not affiliated with or endorsed by Garmin.
 
@@ -67,10 +67,11 @@ All tools are read-only. Dates are `YYYY-MM-DD` in your local calendar.
 | Area | Tools |
 |---|---|
 | Profile | `garmin_get_user_settings` |
-| Activities | `garmin_search_activities`, `garmin_get_activity`, `garmin_get_activity_workouts`, `garmin_download_activity_file` (original FIT/ZIP) |
+| Activities | `garmin_search_activities`, `garmin_get_activity_types`, `garmin_get_activity`, `garmin_get_activity_workouts`, `garmin_download_activity_file` (original FIT/ZIP) |
 | Daily wellness | `garmin_get_daily_summary`, `garmin_get_daily_summaries`, `garmin_get_steps`, `garmin_get_stress`, `garmin_get_hydration`, `garmin_get_wellness_activities` |
 | Sleep | `garmin_get_sleep`, `garmin_get_sleep_summaries` |
 | Heart & recovery | `garmin_get_heart_rate`, `garmin_get_heart_rate_zones`, `garmin_get_hrv`, `garmin_get_hrv_summaries`, `garmin_get_body_battery`, `garmin_get_spo2`, `garmin_get_fitness_age` |
+| Fitness metrics | `garmin_get_vo2_max` |
 | Body | `garmin_get_weight_entries`, `garmin_get_weight_summary`, `garmin_get_weight_goals` |
 | Nutrition | `garmin_get_nutrition_log` |
 | Women's health | `garmin_get_menstrual_cycle_summary`, `garmin_get_menstrual_cycle_day` |

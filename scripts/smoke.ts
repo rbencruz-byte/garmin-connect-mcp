@@ -19,6 +19,7 @@ type Args = Record<string, unknown>;
 const checks: [name: string, args: Args | ((activityId: number) => Args)][] = [
   ['garmin_get_user_settings', {}],
   ['garmin_search_activities', { limit: 3 }],
+  ['garmin_get_activity_types', {}],
   ['garmin_get_activity', (id) => ({ activityId: id })],
   ['garmin_get_activity_workouts', (id) => ({ activityId: id })],
   ['garmin_download_activity_file', (id) => ({ activityId: id })],
@@ -37,6 +38,8 @@ const checks: [name: string, args: Args | ((activityId: number) => Args)][] = [
   ['garmin_get_body_battery', { startDate: daysAgo(1), endDate: today, chunks: 4 }],
   ['garmin_get_spo2', { calendarDate: daysAgo(1) }],
   ['garmin_get_fitness_age', { calendarDate: today }],
+  ['garmin_get_vo2_max', { startDate: daysAgo(29), endDate: today }],
+  ['garmin_get_vo2_max', { startDate: daysAgo(29), endDate: today, sport: ['RUNNING'] }],
   ['garmin_get_weight_entries', { startDate: daysAgo(89), endDate: today }],
   ['garmin_get_weight_summary', { startDate: daysAgo(89), endDate: today }],
   ['garmin_get_weight_goals', { startDate: daysAgo(364), endDate: today }],

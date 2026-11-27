@@ -78,10 +78,10 @@ describe('HTTP MCP end to end', () => {
     return { client, garmin };
   }
 
-  it('lists the 26 tools', async () => {
+  it('lists the 28 tools', async () => {
     const { client } = await connect();
     const { tools } = await client.listTools();
-    expect(tools).toHaveLength(26);
+    expect(tools).toHaveLength(28);
   });
 
   it('calls Garmin and reuses the access token across requests', async () => {
@@ -140,7 +140,7 @@ describe('HTTP 2025-era clients (mcp-remote, Cursor)', () => {
     });
 
     const list = await rpc(await handle(legacy({ jsonrpc: '2.0', id: 2, method: 'tools/list' })));
-    expect((list.result?.tools as unknown[]).length).toBe(26);
+    expect((list.result?.tools as unknown[]).length).toBe(28);
 
     const call = await rpc(
       await handle(legacy({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'garmin_get_user_settings', arguments: {} } })),
